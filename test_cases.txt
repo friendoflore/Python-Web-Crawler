@@ -1,0 +1,1 @@
+curl --data-urlencode "url=http://sample.com" -H "Accept: application/json" http://localhost:8080/crawler
