@@ -27,7 +27,8 @@ class Basepage(webapp2.RequestHandler):
     image - Number of image links to return for compression. Activates breadth-first crawl.
     keyword - Keyword that, if found, stops the crawl
     """
-
+	self.response.headers.add_header("Access-Control-Allow-Origin", "*")
+	
     if 'application/json' not in self.request.accept:
       self.response.state = 406
       self.response.status_message = "Crawler only supports JSON"
