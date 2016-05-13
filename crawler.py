@@ -48,7 +48,7 @@ class Basepage(webapp2.RequestHandler):
 
 
     if depth != 0:
-      depth_crawler = DepthCrawler(urls, 0, depth, breadth, [], keyword)
+      depth_crawler = DepthCrawler(urls, 0, depth, breadth, image_option, [], keyword)
       depth_crawler.depth_crawl()
 
       # The depth crawl returns a JSON object:
@@ -84,11 +84,12 @@ class Basepage(webapp2.RequestHandler):
     self.response.write('\n')
 
 class DepthCrawler:
-  def __init__(self, urls, depth, max_depth, breadth, visited, keyword):
+  def __init__(self, urls, depth, max_depth, breadth, num_images, visited, keyword):
     self.urls = urls
     self.depth = depth
     self.max_depth = int(max_depth)
     self.max_breadth = int(breadth)
+    self.num_images = int(num_images)
     self.visited = visited
     self.keyword = keyword
     self.response = []
@@ -102,7 +103,7 @@ class DepthCrawler:
     for url in self.urls:
 
       # Refer to the JSON response explanation in the BasePage handler 
-      self.response.append({'url': url, 'children': []})
+      self.response.append({'url': url, 'children': [], 'images': []})
 
       # Mark this URL as visited
       self.visited.append(url)
@@ -132,17 +133,25 @@ class DepthCrawler:
           # This is a list of all links in the html response
           parsed_urls = parser.parse()
           
+          filtered_urls = self.filter_urls(parsed_urls)
+
           # Filter the links for crawlable URLs
-          children_urls = self.filter_urls(parsed_urls)
+          # children_urls = self.filter_urls(parsed_urls)
+
+          children_urls = filtered_urls['links']
+
+          compressible_images = filtered_urls['images']
 
           # Copies the attributes values (avoids copying references during recursion)
           depth = self.depth + 1
           visited = self.visited[:]
 
-          child_crawler = DepthCrawler(children_urls, depth, self.max_depth, self.max_breadth, visited, self.keyword)
+          child_crawler = DepthCrawler(children_urls, depth, self.max_depth, self.max_breadth, self.num_images, visited, self.keyword)
           child_crawler.depth_crawl()
 
           self.response[count]['children'] = (child_crawler.response)
+          self.response[count]['images'] = compressible_images
+
           json.dumps(self.response[0], sort_keys=True, indent=4, separators=(',', ': '))
           
         except urllib2.HTTPError, e:
@@ -160,10 +169,16 @@ class DepthCrawler:
     # (the breadth of the crawl)
     # This number is set by the user with the "breadth" POST variable
   def filter_urls(self, urls):
-    result = []
-    unfiltered_links = urls['links']
+    filtered_links = []
+    filtered_img_links = []
 
-    count = 0
+    result = {}
+
+    unfiltered_links = urls['links']
+    unfiltered_img_links = urls['images']
+
+    link_count = 0
+    img_count = 0
 
     for url in unfiltered_links:
       if ( url[:7] == 'http://' ) or ( url[:8] == 'https://' ) or ( url[:2] == '//' ):
@@ -186,11 +201,36 @@ class DepthCrawler:
       #   print "=== Filtered (as prev visit): " + url
       #   continue
 
-      if count < self.max_breadth:
-        result.append(url)
-        count += 1
+      if link_count < self.max_breadth:
+        filtered_links.append(url)
+        link_count += 1
       else:
-        return result
+        # return result
+        break
+
+    for url in unfiltered_img_links:
+      if ( url[:7] == 'http://' ) or ( url[:8] == 'https://' ):
+        pass
+      else:
+        print "== Image Filtered (as not compressible): " + url
+        continue
+
+      if ( url[:1] == '/' ):
+        url = self.request.url + url
+
+      if ( url[-3:] == 'gif') or ( url[-3:] == 'jpg' ) or ( url[-4:] == 'jpeg' ) or ( url[-3:] == 'png' ):
+        pass
+      else:
+        continue
+
+      if img_count < self.num_images:
+        filtered_img_links.append(url)
+        img_count += 1
+      else:
+        break
+
+    result['links'] = filtered_links
+    result['images'] = filtered_img_links
 
     return result
 
@@ -240,15 +280,15 @@ class Parser:
     ## Search through the HTML string and pull out the links
     response = {}
     response['links'] = []
-    # response['images'] = []
+    response['images'] = []
 
     for word in self.html.split():
 
       hreftype = 'links'
-      # srctype = 'images'
+      srctype = 'images'
 
       self.urlParser(word, "href", hreftype, response)
-      # self.urlParser(word, "src", srctype, response)
+      self.urlParser(word, "src", srctype, response)
 
     return response
 
