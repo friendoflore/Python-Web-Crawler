@@ -5,7 +5,6 @@ curl --data-urlencode "url=http://google.com" --data-urlencode "depth=4" --data-
 
 curl --data-urlencode "url=http://google.com" --data-urlencode "depth=3" --data-urlencode "breadth=4" --data-urlencode "image=4" --data-urlencode "keyword=test" -H "Accept: application/json" http://crawler-1288.appspot.com/crawler
 
-
 curl --data-urlencode "url=http://en.wikipedia.com" --data-urlencode "depth=4" --data-urlencode "breadth=4" --data-urlencode "image=4" --data-urlencode "keyword=test" -H "Accept: application/json" http://localhost:8080/crawler
 
 
@@ -14,5 +13,6 @@ DUMMY TESTS FOR IMAGE COMPRESSION
 ---------------------------------
 
 (using TinyPNG large original PNG example for compression)
+(This test case saves "compress-test.png" to the directory from which the cURL request is executed)
 
 curl --data-urlencode "url=https://cdn.tinypng.com/images/example-orig.png?3481b56" -H "Accept: application/json" http://localhost:8080/compress > compress-test.png
