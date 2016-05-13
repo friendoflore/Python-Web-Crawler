@@ -27,8 +27,8 @@ class Basepage(webapp2.RequestHandler):
     image - Number of image links to return for compression. Activates breadth-first crawl.
     keyword - Keyword that, if found, stops the crawl
     """
-	self.response.headers.add_header("Access-Control-Allow-Origin", "*")
-	
+    self.response.headers['Access-Control-Allow-Origin'] = '*'
+  
     if 'application/json' not in self.request.accept:
       self.response.state = 406
       self.response.status_message = "Crawler only supports JSON"
@@ -166,18 +166,25 @@ class DepthCrawler:
     count = 0
 
     for url in unfiltered_links:
-      if ( url[:7] == 'http://' ) or ( url[:8] == 'https://' ):
+      if ( url[:7] == 'http://' ) or ( url[:8] == 'https://' ) or ( url[:2] == '//' ):
+        if url[:2] == '//':
+          url = "https:" + url
         pass
       else:
-        print "=== Filtered (as invalid): " + url
+        print "=== Filtered (as not crawlable): " + url
         continue
 
+      # if ( url[:2] == '//' ):
+      #   url = "http:" + url
+      # else:
+      #   print "=== Filtered (not relative link):" + url
+
       # Prioritize domains that haven't been visited yet
-      if self.domain_filter(url):
-        pass
-      else:
-        print "=== Filtered (as prev visit): " + url
-        continue
+      # if self.domain_filter(url):
+      #   pass
+      # else:
+      #   print "=== Filtered (as prev visit): " + url
+      #   continue
 
       if count < self.max_breadth:
         result.append(url)
@@ -201,18 +208,18 @@ class DepthCrawler:
       if visited_url == url:
         return False
 
-      if not visited_url.endswith('/'):
-        visited_url += '/'
+      # if not visited_url.endswith('/'):
+      #   visited_url += '/'
 
-      if not url.endswith('/'):
-        url += '/'
+      # if not url.endswith('/'):
+      #   url += '/'
     
-      m = re.search(pattern, visited_url)
-      if m:
-        visited_domain = m.group(0)
+      # m = re.search(pattern, visited_url)
+      # if m:
+      #   visited_domain = m.group(0)
 
-      if visited_domain == url_domain:
-        return False
+      # if visited_domain == url_domain:
+      #   return False
     
     return True
 
