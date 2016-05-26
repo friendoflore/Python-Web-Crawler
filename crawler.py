@@ -162,7 +162,7 @@ class DepthCrawler:
             depth = self.depth + 1
             visited = self.visited[:]
 
-            child_crawler = DepthCrawler(children_urls, depth, self.max_depth, self.max_breadth, visited, self.keyword)
+            child_crawler = DepthCrawler(children_urls, depth, self.max_depth, self.max_breadth, self.num_images, visited, self.keyword)
             child_crawler.depth_crawl()
 
             self.response[count]['children'] = (child_crawler.response)
