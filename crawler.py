@@ -7,6 +7,12 @@ import requests
 from requests.exceptions import HTTPError
 import db_models
 from google.appengine.ext import ndb
+
+import urllib
+import sys
+reload(sys)
+sys.setdefaultencoding("ISO-8859-1")
+
 # from google.appengine.ext import blobstore
 # from google.appengine.ext.webapp import blobstore_handlers
 tinify.key = "RjQma6pVqAjKdolx3M4Htp8Se4m7p9bE"
@@ -28,6 +34,7 @@ class Basepage(webapp2.RequestHandler):
     keyword - Keyword that, if found, stops the crawl
     """
     self.response.headers['Access-Control-Allow-Origin'] = '*'
+
   
     if 'application/json' not in self.request.accept:
       self.response.state = 406
@@ -124,43 +131,58 @@ class DepthCrawler:
           
           print "\nOpening HTTP: " + url
           print "------------------------"
+          
 
           HTMLresponse = urllib2.urlopen(url)
           html = HTMLresponse.read()
 
-          # Parse HTML
-          parser = Parser(html, self.keyword)
+          #Decided to use HTMLresponse/html from above rather than reopening the url again
+          #keywordsearch = urllib.urlopen(url)
+          #contents = HTMLresponse.read()
+          found = html.find(self.keyword)
 
-          # This is a list of all links in the html response
-          parsed_urls = parser.parse()
-          
-          filtered_urls = self.filter_urls(parsed_urls)
+          #If found == -1 then keyword is not found
+          #Continue with url crawl
+          if found == -1:
+            print "Keyword NOT found"
 
-          # Filter the links for crawlable URLs
-          # children_urls = self.filter_urls(parsed_urls)
+                        # Parse HTML
+            parser = Parser(html, self.keyword)
 
-          children_urls = filtered_urls['links']
+            # This is a list of all links in the html response
+            parsed_urls = parser.parse()
 
-          compressible_images = filtered_urls['images']
+            filtered_urls = self.filter_urls(parsed_urls)
+            
+            # Filter the links for crawlable URLs
+            children_urls = filtered_urls['links']
+            compressible_images = filtered_urls['images']
 
-          # Copies the attributes values (avoids copying references during recursion)
-          depth = self.depth + 1
-          visited = self.visited[:]
+            # Copies the attributes values (avoids copying references during recursion)
+            depth = self.depth + 1
+            visited = self.visited[:]
 
-          child_crawler = DepthCrawler(children_urls, depth, self.max_depth, self.max_breadth, self.num_images, visited, self.keyword)
-          child_crawler.depth_crawl()
+            child_crawler = DepthCrawler(children_urls, depth, self.max_depth, self.max_breadth, visited, self.keyword)
+            child_crawler.depth_crawl()
 
-          self.response[count]['children'] = (child_crawler.response)
-          self.response[count]['images'] = compressible_images
+            self.response[count]['children'] = (child_crawler.response)
+            self.response[count]['images'] = compressible_images
+            json.dumps(self.response[0], sort_keys=True, indent=4, separators=(',', ': '))
+            
+          #Found returns index of keyword in url
+          #Set depth to max_depth to stop iterating through the urls
+          else:
+            print "Keyword found"
+            self.depth = self.max_depth 
 
-          json.dumps(self.response[0], sort_keys=True, indent=4, separators=(',', ': '))
-          
+
         except urllib2.HTTPError, e:
           print "\n ------ HTTPError ------\n"
           return
 
         # Go to next sibling
         count += 1
+
 
       else:
         return
