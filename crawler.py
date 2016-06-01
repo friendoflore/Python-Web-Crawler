@@ -242,7 +242,7 @@ class DepthCrawler:
       if ( url[:1] == '/' ):
         url = self.request.url + url
 
-      if ( url[-3:] == 'gif') or ( url[-3:] == 'jpg' ) or ( url[-4:] == 'jpeg' ) or ( url[-3:] == 'png' ):
+      if (( url[-3:] == 'jpg' ) or ( url[-4:] == 'jpeg' ) or ( url[-3:] == 'png' )):
         pass
       else:
         continue
