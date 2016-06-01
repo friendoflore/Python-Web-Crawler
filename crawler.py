@@ -110,7 +110,7 @@ class DepthCrawler:
     for url in self.urls:
 
       # Refer to the JSON response explanation in the BasePage handler 
-      self.response.append({'url': url, 'children': [], 'images': []})
+      self.response.append({'url': url, 'children': [], 'images': [], 'keyword': []})
 
 
       # Mark this URL as visited
@@ -173,6 +173,7 @@ class DepthCrawler:
           #Set depth to max_depth to stop iterating through the urls
           else:
             print "Keyword found"
+            self.response[count]['keyword'] = self.keyword
             self.depth = self.max_depth 
 
 
