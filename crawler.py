@@ -12,14 +12,7 @@ import urllib
 import sys
 reload(sys)
 sys.setdefaultencoding("ISO-8859-1")
-
-# from google.appengine.ext import blobstore
-# from google.appengine.ext.webapp import blobstore_handlers
 tinify.key = "RjQma6pVqAjKdolx3M4Htp8Se4m7p9bE"
-
-# imagemagick on the server?
-# We can use the image service from the google app engine for data
-  # https://cloud.google.com/appengine/docs/python/images/
 
 class Basepage(webapp2.RequestHandler):
   def post(self):
@@ -213,24 +206,18 @@ class DepthCrawler:
         print "=== Filtered (as not crawlable): " + url
         continue
 
-      # if ( url[:2] == '//' ):
-      #   url = "http:" + url
-      # else:
-      #   print "=== Filtered (not relative link):" + url
-
       # Prioritize domains that haven't been visited yet
-      # if self.domain_filter(url):
-      #   pass
-      # else:
-      #   print "=== Filtered (as prev visit): " + url
-      #   continue
+      if self.domain_filter(url):
+        pass
+      else:
+        print "=== Filtered (as prev visit): " + url
+        continue
 
 
       if link_count < self.max_breadth:
         filtered_links.append(url)
         link_count += 1
       else:
-        # return result
         break
 
     for url in unfiltered_img_links:
@@ -272,19 +259,6 @@ class DepthCrawler:
 
       if visited_url == url:
         return False
-
-      # if not visited_url.endswith('/'):
-      #   visited_url += '/'
-
-      # if not url.endswith('/'):
-      #   url += '/'
-    
-      # m = re.search(pattern, visited_url)
-      # if m:
-      #   visited_domain = m.group(0)
-
-      # if visited_domain == url_domain:
-      #   return False
     
     return True
 
