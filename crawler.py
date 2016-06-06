@@ -72,13 +72,6 @@ class Basepage(webapp2.RequestHandler):
       #   ]
       # }
 
-
-
-    # The image crawl
-    if image_option != 0:
-      pass
-
-
     self.response.write(json.dumps(depth_crawler.response[0], sort_keys=True, 
       indent=4, separators=(',', ': ')))
     self.response.write('\n')
@@ -155,6 +148,8 @@ class DepthCrawler:
             depth = self.depth + 1
             visited = self.visited[:]
 
+            # Recursively create child crawler objects, i.e. each webpage is associated
+            # with one crawler
             child_crawler = DepthCrawler(children_urls, depth, self.max_depth, self.max_breadth, self.num_images, visited, self.keyword)
             child_crawler.depth_crawl()
 
@@ -177,11 +172,10 @@ class DepthCrawler:
         # Go to next sibling
         count += 1
 
-
       else:
         return
 
-  # Filter URLs, return only links that use HTTP or HTTPS
+  # Filter URLs, return only links that use HTTP or HTTPS, or relative links
   # This is where the number of siblings to be crawled is controlled 
     # (the breadth of the crawl)
     # This number is set by the user with the "breadth" POST variable
@@ -285,7 +279,6 @@ class Parser:
     for word in self.html.split():
 
       hreftype = 'links'
-
       srctype = 'images'
 
       self.urlParser(word, "href", hreftype, response)
@@ -300,21 +293,3 @@ class Parser:
       if m:
         newurl = m.group()[1:-1]
         responseObj[urltype].append(newurl)
-
-class Compressor:
-  def __init__(self, url):
-    self.url = url
-
-  # This function returns the actual PNG or JPEG image
-  def compress(self):
-    img_store = db_models.Image()
-    img_key = img_store.put()
-    source = tinify.from_url()
-    source.to_blob(img_key)
-    comp_img_store = img_key.get()
-    return comp_img_store.img
-
-
-
-
-
