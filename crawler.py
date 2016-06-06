@@ -5,9 +5,7 @@ import re
 import tinify
 import requests
 from requests.exceptions import HTTPError
-import db_models
 from google.appengine.ext import ndb
-
 import urllib
 import sys
 reload(sys)
@@ -197,6 +195,14 @@ class DepthCrawler:
           url = "https:" + url
         pass
       else:
+        print "=== Filtered (as not crawlable): " + url
+        continue
+
+      if url.endswith(".css"):
+        print "=== Filtered (as not crawlable): " + url
+        continue
+
+      if url.endswith(".png"):
         print "=== Filtered (as not crawlable): " + url
         continue
 
