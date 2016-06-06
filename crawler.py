@@ -163,7 +163,9 @@ class DepthCrawler:
             print "Keyword found"
             self.response[count]['keyword'] = self.keyword
             self.depth = self.max_depth 
-
+            self.breadth = self.max_breadth
+            self.response[count]['children'] = []
+            return
 
         except urllib2.HTTPError, e:
           print "\n ------ HTTPError ------\n"
